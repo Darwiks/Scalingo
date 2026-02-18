@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/petitbac.css">
+    <title>Configuration - BlindTest</title>
+</head>
+<body>
+    <div class="container">
+        <h1>Configuration du BlindTest</h1>
+        
+        <form action="/blindgame" method="POST" class="config-form">
+            <input type="hidden" name="room_code" value="{{.RoomCode}}">
+            <div class="config-section">
+                <h2>Paramètres de la partie</h2>
+                
+                <div class="form-group">
+                    <label for="playlist">Choix de la Playlist :</label>
+                    <select id="playlist" name="playlist" style="width: 100%; padding: 10px; margin-top: 5px; border-radius: 5px; border: 1px solid #ccc;" required>
+                        {{range .Playlists}}
+                        <option value="{{.ID}}">{{.Name}}</option>
+                        {{end}}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="maxRounds">Nombre de musiques :</label>
+                    <input type="number" id="maxRounds" name="maxRounds" min="1" max="50" value="5" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="timeLimit">Temps par musique (secondes) :</label>
+                    <input type="number" id="timeLimit" name="timeLimit" min="10" max="120" value="45" required>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-start">Lancer le BlindTest</button>
+        </form>
+    </div>
+</body>
+</html>

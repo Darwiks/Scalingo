@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Salle d'attente</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <style>
+        .lobby-container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            text-align: center;
+        }
+        .user-list {
+            list-style: none;
+            padding: 0;
+            margin: 20px 0;
+        }
+        .user-list li {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            font-size: 1.2em;
+        }
+        .room-code {
+            font-size: 2em;
+            font-weight: bold;
+            color: #333;
+            margin: 20px 0;
+            letter-spacing: 5px;
+        }
+        .start-btn {
+            padding: 15px 30px;
+            font-size: 1.2em;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .start-btn:hover {
+            background-color: #45a049;
+        }
+        .waiting-msg {
+            font-style: italic;
+            color: #666;
+        }
+    </style>
+    <script>
+        // WebSocket pour rediriger automatiquement quand la partie démarre
+        const socket = new WebSocket("ws://" + window.location.host + "/ws");
+        let reloading = false;
+        socket.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                if (data.type === "redirect") {
+                    if (!data.room || data.room === "{{.RoomCode}}") {
+                        window.location.href = data.url;
+                    }
+                }
+                if (data.type === "room_update") {
+                    if (!reloading && (!data.room || data.room === "{{.RoomCode}}")) {
+                        reloading = true;
+                        window.location.reload();
+                    }
+                }
+            } catch (e) {
+                console.error("WebSocket error", e);
+            }
+        };
+    </script>
+</head>
+<body>
+    <div class="lobby-container">
+        <h1>Salle d'attente</h1>
+        
+        <div class="room-info">
+            <p>Code de la salle :</p>
+            <div class="room-code">{{.RoomCode}}</div>
+        </div>
+
+        <h3>Joueurs connectés :</h3>
+        <ul class="user-list">
+            {{range .Users}}
+            <li>{{.}}</li>
+            {{end}}
+        </ul>
+
+        {{if .IsCreator}}
+        <a href="/petit-bac/config?room={{.RoomCode}}">
+            <button type="button" class="start-btn">CONFIGURATION</button>
+        </a>
+        {{else}}
+        <p class="waiting-msg">En attente du créateur pour lancer la partie...</p>
+        {{end}}
+    </div>
+</body>
+</html>

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/petitbac.css">
+    <title>Résultats - BlindTest</title>
+</head>
+<body>
+    <div class="container">
+        <div class="results-container">
+            <h1>Partie terminée</h1>
+            
+            <div class="scoreboard-section">
+                <h2>Classement Final</h2>
+                <table class="scoreboard final">
+                    <thead>
+                        <tr>
+                            <th>Position</th>
+                            <th>Joueur</th>
+                            <th>Score Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{range $index, $player := .Scoreboard}}
+                        <tr class="{{if eq $index 0}}winner{{end}}">
+                            <td class="position">{{add $index 1}}</td>
+                            <td class="player-name">{{$player.Name}}</td>
+                            <td class="score"><strong>{{$player.Score}}</strong> pts</td>
+                        </tr>
+                        {{end}}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="game-summary">
+                <p>{{.MaxRounds}} musiques jouées</p>
+            </div>
+
+            <div class="actions">
+                <a href="/" class="btn-secondary">Accueil</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

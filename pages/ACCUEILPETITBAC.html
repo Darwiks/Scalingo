@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/AccueilROOM.css"></link>
+    <title>JJD Games</title>
+</head>
+<body>
+    <div id="Section">
+        <div id="section-Créer">
+            <form action="/petit-bac/create" method="POST">
+                <label class="Créer">Créer une partie</label><br>
+                <input type="text" name="room_code" class="Créer" value="{{.RoomCode}}" readonly><br>
+                <input type="hidden" name="game_type" value="PetitBac">
+                <button type="submit" class="btn">Créer</button>
+            </form>
+        </div>
+        <div id="section-Rejoindre">
+            <form action="/petit-bac/join" method="POST">
+                <label class="Rejoindre">Rejoindre une partie</label><br>
+                <input type="text" name="room_code" class="Rejoindre" required><br>
+                <button type="submit" class="btn">Rejoindre</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

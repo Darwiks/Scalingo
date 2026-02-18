@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/blindtest.css"></link>
+    <title>BlindTest</title>
+</head>
+<body>
+    <h1>BlindTest</h1>
+    <div id="roundTimer">{{.TimeLimit}}</div>
+    <div id="timerDisplay">Prochaine chanson dans <span id="timeLeft">5</span>secondes</div>
+    <audio id="musicPlayer" controls autoplay style ="width: 100%; margin: 20px 0;"></audio>
+    <input type="text" id="inputGuess" placeholder="Votre réponse...">
+    <button onclick="sendGuess()">Envoyer</button>
+    <div id="messages"></div>
+
+    <script>
+        const socket = new WebSocket("ws://localhost:8080/ws");
+        const statusDiv = document.getElementById("status");
+        const messagesDiv = document.getElementById("messages");
+        const audioPlayer = document.getElementById("musicPlayer");
+        const roundTimerDiv = document.getElementById("roundTimer");
+        let roundInterval;
+
+        function startRoundTimer() {
+            clearInterval(roundInterval);
+            let timeLeft = parseInt("{{.TimeLimit}}");
+            roundTimerDiv.textContent = timeLeft;
+            
+            roundInterval = setInterval(() => {
+                timeLeft--;
+                roundTimerDiv.textContent = timeLeft;
+                if (timeLeft <= 0) {
+                    clearInterval(roundInterval);
+                }
+            }, 1000);
+        }
+        
+        socket.onmessage = (event) => {
+            try {
+                let data = JSON.parse(event.data);
+
+                if (data.type === "audio") {
+
+                    timerDisplay.style.display = "none";
+                    startRoundTimer();
+
+                    audioPlayer.src = data.url;
+                    audioPlayer.play().catch(e => console.log("Autoplay error:", e));
+                    addMessage("SYSTEM", data.msg);
+
+                } else if (data.type === "msg") {
+                    addMessage("CHAT", data.text);
+
+                    if (data.text.includes("Prochaine chanson") || data.text.includes("Temps écoulé")) {
+                        audioPlayer.pause();
+                        clearInterval(roundInterval);
+                        startCountdown(5)
+                    }
+                } else if (data.type === "redirect") {
+                    window.location.href = data.url;
+                }
+            } catch (e) {
+                console.error("Erreur JS:", e);
+            }
+        };
+
+        function addMessage(type, text) {
+            let msg = document.createElement("div");
+            msg.textContent = `[${type}] ${text}`;
+            if (type === "SYSTEM") msg.style.color = "green";
+            if (type === "CHAT") msg.style.color = "blue";
+            messagesDiv.prepend(msg);
+        }
+
+        function sendGuess() {
+            let input = document.getElementById("inputGuess");
+            if (input.value.trim() !== "") {
+                socket.send(input.value);
+                input.value = "";
+            }
+        }
+
+        document.getElementById("inputGuess").addEventListener("keypress", function(event) {
+            if (event.key === "Enter") sendGuess();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/petitbac.css">
+    <title>Résultats Manche - Petit Bac</title>
+</head>
+<body>
+    <div class="container">
+        <h1>Résultats de la Manche {{.Round}}</h1>
+        
+        <div class="results-section">
+            <h2>Réponses et Points</h2>
+            {{range .Answers}}
+            <div class="result-card {{if .IsValid}}valid{{else}}invalid{{end}}">
+                <div class="result-header">
+                    <span class="player-name">{{.PlayerName}}</span>
+                    <span class="category-badge">{{.Category}}</span>
+                </div>
+                <div class="result-content">
+                    <span class="answer-text">{{.Answer}}</span>
+                    <span class="points-badge">{{if .IsValid}}+{{.Points}} pts{{else}}0 pts{{end}}</span>
+                </div>
+                <div class="result-status">
+                    {{if .IsValid}}
+                        {{if eq .Points 2}} Réponse unique{{else}} Réponse en double{{end}}
+                    {{else}}
+                         Réponse invalide
+                    {{end}}
+                </div>
+            </div>
+            {{end}}
+        </div>
+
+        <div class="actions">
+            {{if lt .Round .MaxRounds}}
+                {{if .IsWaiting}}
+                <button type="button" class="btn-primary btn-waiting" disabled>✓ Prêt - En attente...</button>
+                {{else}}
+                <form action="/petit-bac/next-round" method="POST" style="display: inline;">
+                    <button type="submit" class="btn-primary">Manche suivante</button>
+                </form>
+                {{end}}
+            {{else}}
+                <a href="/petit-bac/results" class="btn-primary">Voir le classement final</a>
+            {{end}}
+        </div>
+    </div>
+    <script>
+        const socket = new WebSocket("ws://" + window.location.host + "/ws");
+        socket.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                if (data.type === "redirect") {
+                    if (!data.room || data.room === "{{.RoomCode}}") {
+                        window.location.href = data.url;
+                    }
+                }
+            } catch (e) {
+                console.error("WebSocket error", e);
+            }
+        };
+    </script>
+</body>
+</html>

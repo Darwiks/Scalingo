@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>JJD Games</title>
+        <link rel="stylesheet" href="static/index.css">
+    </head>
+    <body>
+        <header class="NavBar">
+            <div class="auth-buttons">
+                {{if .IsLoggedIn}}
+                <a href="/logout"><button class="btn btn-logout">Déconnexion</button></a>
+                {{else}}
+                <a href="/login"><button class="btn">Connexion</button></a>
+                <a href="/register"><button class="btn">Inscription</button></a>
+                {{end}}
+            </div>
+
+            <h1 style="color: white; text-align: center; margin-bottom: 30px;">🎮 JJD Games 🎮</h1>
+            
+            <div class="game-buttons">
+                <div class="game-card">
+                    <h2 style="color: white; margin: 0 0 10px 0;">🎓 Petit Bac</h2>
+                    <p style="color: rgba(255, 255, 255, 0.8); margin: 0 0 15px 0;">Trouvez des mots commençant par une lettre donnée</p>
+                    <a href="/petitbac"><button class="btn">Jouer</button></a>
+                </div>
+                <div class="game-card">
+                    <h2 style="color: white; margin: 0 0 10px 0;">🎵 Blind Test</h2>
+                    <p style="color: rgba(255, 255, 255, 0.8); margin: 0 0 15px 0;">Devinez le titre et l'artiste de la chanson</p>
+                    <a href="/blind-test"><button class="btn">Jouer</button></a>
+                </div>
+            </div>
+        </header>
+    </body>
+</html>

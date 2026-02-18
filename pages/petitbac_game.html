@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/petitbac.css">
+    <title>Jeu Petit Bac - Manche {{.Round}}</title>
+</head>
+<body>
+    <div class="container" id="game-root" data-is-waiting="{{.IsWaiting}}">
+        <div class="header">
+            <h1>Petit Bac Musical</h1>
+            <div class="game-stats">
+                <span>Manche: {{.Round}} / {{.MaxRounds}}</span>
+                <span>Score: {{.Score}} points</span>
+            </div>
+            {{if .IsCreator}}
+            <form action="/petit-bac/stop" method="POST" style="display: inline;">
+                <button type="submit" class="btn-stop">Arrêter la partie</button>
+            </form>
+            {{end}}
+        </div>
+
+        <div class="letter-box">
+            <h2>Lettre de la manche :</h2>
+            <div class="letter">{{.Letter}}</div>
+        </div>
+
+        {{if .IsWaiting}}
+        <div class="waiting-overlay">
+            <div class="categories">
+                {{range .Categories}}
+                <div class="category-item">
+                    <label for="{{.}}">{{.}}</label>
+                    <input type="text" id="{{.}}" disabled placeholder="Réponse envoyée">
+                </div>
+                {{end}}
+            </div>
+            <button type="button" class="btn-submit btn-waiting" disabled>✓ Réponses envoyées</button>
+        </div>
+        {{else}}
+        <form action="/petit-bac/game" method="POST" class="game-form">
+            <div class="categories">
+                {{range .Categories}}
+                <div class="category-item">
+                    <label for="{{.}}">{{.}}</label>
+                    <input type="text" id="{{.}}" name="{{.}}" placeholder="Entrez un mot en {{$.Letter}}...">
+                </div>
+                {{end}}
+            </div>
+
+            <button type="submit" class="btn-submit">Valider</button>
+        </form>
+
+        <div class="timer">
+            <p>Temps restant : <span id="countdown">{{.TimeRemaining}}</span> secondes</p>
+        </div>
+        {{end}}
+    </div>
+
+    <script>
+        const socket = new WebSocket("ws://" + window.location.host + "/ws");
+        socket.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                if (data.type === "redirect") {
+                    if (!data.room || data.room === "{{.RoomCode}}") {
+                        window.location.href = data.url;
+                    }
+                }
+            } catch (e) {
+                console.error("WebSocket error", e);
+            }
+        };
+
+        // Timer côté client pour l'affichage uniquement
+        const root = document.getElementById('game-root');
+        const isWaiting = root?.dataset.isWaiting === 'true';
+        if (!isWaiting) {
+            let timeLeft = parseInt('{{.TimeRemaining}}', 10) || 60;
+            const countdownEl = document.getElementById('countdown');
+
+            const timer = setInterval(() => {
+                timeLeft--;
+                if (countdownEl) {
+                    countdownEl.textContent = timeLeft;
+                }
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    const form = document.querySelector('.game-form');
+                    if (form) {
+                        form.submit();
+                    }
+                }
+            }, 1000);
+        }
+    </script>
+</body>
+</html>

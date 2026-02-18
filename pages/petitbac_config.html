@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/petitbac.css">
+    <title>Configuration - Petit Bac</title>
+</head>
+<body>
+    <div class="container">
+        <h1>Configuration de la Partie</h1>
+        
+        <form action="/petit-bac/launch?room={{.RoomCode}}" method="POST" class="config-form">
+            <input type="hidden" name="room_code" value="{{.RoomCode}}">
+            <div class="config-section">
+                <h2>Paramètres de la partie</h2>
+                
+                <div class="form-group">
+                    <label for="maxRounds">Nombre de manches :</label>
+                    <input type="number" id="maxRounds" name="maxRounds" min="1" max="10" value="5" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="timeLimit">Temps par manche (secondes) :</label>
+                    <input type="number" id="timeLimit" name="timeLimit" min="30" max="300" value="60" required>
+                </div>
+            </div>
+
+            <div class="config-section">
+                <h2>Catégories</h2>
+                <p class="hint">Personnalisez les catégories du jeu</p>
+                
+                <div id="categories-list">
+                    <div class="category-item-config">
+                        <input type="text" name="categories[]" value="Artiste" required>
+                        <button type="button" class="btn-remove" onclick="removeCategory(this)">✕</button>
+                    </div>
+                    <div class="category-item-config">
+                        <input type="text" name="categories[]" value="Album" required>
+                        <button type="button" class="btn-remove" onclick="removeCategory(this)">✕</button>
+                    </div>
+                    <div class="category-item-config">
+                        <input type="text" name="categories[]" value="Groupe de musique" required>
+                        <button type="button" class="btn-remove" onclick="removeCategory(this)">✕</button>
+                    </div>
+                    <div class="category-item-config">
+                        <input type="text" name="categories[]" value="Instrument de musique" required>
+                        <button type="button" class="btn-remove" onclick="removeCategory(this)">✕</button>
+                    </div>
+                    <div class="category-item-config">
+                        <input type="text" name="categories[]" value="Featuring" required>
+                        <button type="button" class="btn-remove" onclick="removeCategory(this)">✕</button>
+                    </div>
+                </div>
+
+                <button type="button" class="btn-add" onclick="addCategory()">+ Ajouter une catégorie</button>
+            </div>
+
+            <button type="submit" class="btn-start">Démarrer la partie</button>
+        </form>
+    </div>
+
+    <script>
+        function addCategory() {
+            const list = document.getElementById('categories-list');
+            const div = document.createElement('div');
+            div.className = 'category-item-config';
+            div.innerHTML = `
+                <input type="text" name="categories[]" placeholder="Nouvelle catégorie" required>
+                <button type="button" class="btn-remove" onclick="removeCategory(this)">✕</button>
+            `;
+            list.appendChild(div);
+        }
+
+        function removeCategory(btn) {
+            const list = document.getElementById('categories-list');
+            if (list.children.length > 1) {
+                btn.parentElement.remove();
+            } else {
+                alert('Il faut au moins une catégorie !');
+            }
+        }
+    </script>
+</body>
+</html>

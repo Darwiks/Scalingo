@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/petitbac.css">
+    <title>Validation - Petit Bac</title>
+</head>
+<body>
+    <div class="validation-container">
+        <!-- Header avec tour et lettre -->
+        <div class="validation-header">
+            <div class="tour-info">tour : <span class="highlight">{{.Round}}/{{.MaxRounds}}</span></div>
+            <div class="lettre-info">lettre : <span class="highlight-letter">{{.Letter}}</span></div>
+        </div>
+
+        <!-- Instructions -->
+        <div class="validation-instructions">
+            {{if .IsWaiting}}
+            {{else}}
+            <p>Indiquez les mots invalides puis confirmez les résultats en cliquant sur le bouton en bas de la page</p>
+            {{end}}
+        </div>
+
+        <form action="/petit-bac/validation" method="POST" class="validation-form-new">
+            {{range $category := .Categories}}
+            <div class="category-section">
+                <h2 class="category-title">{{$category}} en <span class="letter-highlight">{{$.Letter}}</span></h2>
+                
+                <div class="players-answers">
+                    {{range $answer := index $.CategoryAnswers $category}}
+                    <div class="player-answer-row">
+                        <div class="player-info">
+                            <div class="player-avatar">👤</div>
+                            <span class="player-pseudo">{{$answer.PlayerName}}</span>
+                        </div>
+                        
+                        <div class="answer-box">
+                            {{if $answer.Answer}}
+                            <span class="answer-text-new">{{$answer.Answer}}</span>
+                            {{else}}
+                            <span class="answer-empty">—</span>
+                            {{end}}
+                        </div>
+                        
+                        <div class="vote-toggle">
+                            <label class="toggle-switch">
+                                <input type="checkbox" name="vote_{{$answer.Index}}" value="valid" checked {{if $.IsWaiting}}disabled{{end}}>
+                                <span class="toggle-slider">
+                                    <span class="toggle-valid">✓</span>
+                                    <span class="toggle-invalid">✕</span>
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+                    {{else}}
+                    <div class="no-answers">Aucune réponse pour cette catégorie</div>
+                    {{end}}
+                </div>
+            </div>
+            {{end}}
+
+            <div class="validation-actions">
+                {{if .IsWaiting}}
+                <button type="button" class="btn-confirm btn-waiting" disabled> Vote envoyé - En attente...</button>
+                {{else}}
+                <button type="submit" class="btn-confirm">Confirmer les résultats</button>
+                {{end}}
+            </div>
+        </form>
+    </div>
+
+    <script>
+        const socket = new WebSocket("ws://" + window.location.host + "/ws");
+        socket.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                if (data.type === "redirect") {
+                    if (!data.room || data.room === "{{.RoomCode}}") {
+                        window.location.href = data.url;
+                    }
+                }
+            } catch (e) {
+                console.error("WebSocket error", e);
+            }
+        };
+
+        // Toggle automatique des classes pour l'affichage visuel
+        document.querySelectorAll('.toggle-switch input').forEach(toggle => {
+            toggle.addEventListener('change', function() {
+                const row = this.closest('.player-answer-row');
+                if (this.checked) {
+                    row.classList.remove('invalid-answer');
+                    row.classList.add('valid-answer');
+                } else {
+                    row.classList.remove('valid-answer');
+                    row.classList.add('invalid-answer');
+                }
+            });
+            // Initialiser l'état
+            const row = toggle.closest('.player-answer-row');
+            if (toggle.checked) {
+                row.classList.add('valid-answer');
+            }
+        });
+    </script>
+</body>
+</html>

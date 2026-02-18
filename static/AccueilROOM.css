@@ -1,0 +1,176 @@
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    line-height: 1.6;
+    margin: 0;
+}
+
+#Section {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    max-width: 1000px;
+    width: 100%;
+    padding: 20px;
+}
+
+#section-Créer,
+#section-Rejoindre {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.15);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(15px);
+    border-radius: 20px;
+    padding: 50px 40px;
+    text-align: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    min-height: 400px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+#section-Créer:hover,
+#section-Rejoindre:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+    border-color: rgba(255, 255, 255, 0.5);
+    background: rgba(255, 255, 255, 0.2);
+}
+
+#section-Créer {
+    border-left: 5px solid #4CAF50;
+}
+
+#section-Rejoindre {
+    border-left: 5px solid #2196F3;
+}
+
+label.Créer,
+label.Rejoindre {
+    font-size: 2em;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 30px;
+    display: block;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+input.Créer,
+input.Rejoindre {
+    width: 100%;
+    padding: 18px 25px;
+    font-size: 1.4em;
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.95);
+    color: #333;
+    font-weight: 600;
+    text-align: center;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin: 25px 0;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+}
+
+input.Créer:focus,
+input.Rejoindre:focus {
+    outline: none;
+    border-color: rgba(255, 255, 255, 0.8);
+    background: white;
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+    transform: scale(1.02);
+}
+
+input.Créer[readonly] {
+    background: rgba(255, 255, 255, 0.85);
+    cursor: default;
+}
+
+.btn {
+    width: 100%;
+    padding: 20px 30px;
+    font-size: 1.3em;
+    font-weight: 700;
+    background: linear-gradient(135deg, #6366f1 0%, #06b6d4 100%);
+    border: none;
+    border-radius: 12px;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+    position: relative;
+    overflow: hidden;
+    margin-top: 20px;
+}
+
+.btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.5s ease;
+}
+
+.btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(99, 102, 241, 0.6);
+}
+
+.btn:hover::before {
+    left: 100%;
+}
+
+.btn:active {
+    transform: translateY(-1px);
+}
+
+#section-Créer .btn {
+    background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+    box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+}
+
+#section-Créer .btn:hover {
+    box-shadow: 0 10px 30px rgba(76, 175, 80, 0.6);
+}
+
+#section-Rejoindre .btn {
+    background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+    box-shadow: 0 6px 20px rgba(33, 150, 243, 0.4);
+}
+
+#section-Rejoindre .btn:hover {
+    box-shadow: 0 10px 30px rgba(33, 150, 243, 0.6);
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+@media (max-width: 768px) {
+    #Section {
+        flex-direction: column;
+        gap: 30px;
+    }
+    
+    #section-Créer,
+    #section-Rejoindre {
+        min-height: 350px;
+    }
+}
