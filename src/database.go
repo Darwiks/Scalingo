@@ -54,6 +54,6 @@ func InitDatabase() error {
 
 	
     DB = db
-	fmt.Println("Connected to the SQLite database successfully.")
+	fmt.Println("Connected to the PostgreSQL database successfully.")
     return nil
 }
