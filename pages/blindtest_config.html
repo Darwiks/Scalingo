@@ -7,7 +7,8 @@
     <title>Configuration - BlindTest</title>
     <script>
         // WebSocket pour mettre à jour la liste des joueurs
-        const socket = new WebSocket("ws://" + window.location.host + "/ws");
+        const wsProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+        const socket = new WebSocket(wsProtocol + "//" + window.location.host + "/ws");
         socket.onmessage = (event) => {
              // Si on reçoit un message de type "redirect" ou autre, on pourrait réagir
              // Pour l'instant, on se contente de recharger la page si nécessaire

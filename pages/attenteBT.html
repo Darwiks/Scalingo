@@ -50,7 +50,8 @@
     </style>
     <script>
         // WebSocket pour rediriger automatiquement quand la partie démarre
-        const socket = new WebSocket("ws://" + window.location.host + "/ws");
+        const wsProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+        const socket = new WebSocket(wsProtocol + "//" + window.location.host + "/ws");
         let reloading = false;
         socket.onmessage = (event) => {
             try {

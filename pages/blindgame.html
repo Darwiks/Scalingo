@@ -16,7 +16,8 @@
     <div id="messages"></div>
 
     <script>
-        const socket = new WebSocket("ws://" + window.location.host + "/ws");
+        const wsProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+        const socket = new WebSocket(wsProtocol + "//" + window.location.host + "/ws");
         const statusDiv = document.getElementById("status");
         const messagesDiv = document.getElementById("messages");
         const audioPlayer = document.getElementById("musicPlayer");
