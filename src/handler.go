@@ -7,7 +7,6 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/nbutton23/zxcvbn-go"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -43,8 +42,6 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		password := r.FormValue("password")
 		confirmPassword := r.FormValue("confirmPassword")
 
-		inputs := []string{pseudo, email}
-
 		if EmailExists(email) {
 			http.Redirect(w, r, "/register?error=Cet+email+est+déjà+utilisé", http.StatusSeeOther)
 			return
@@ -59,12 +56,12 @@ func Register(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		strength := zxcvbn.PasswordStrength(password, inputs)
+		// strength := zxcvbn.PasswordStrength(password, inputs)
 
-		if strength.Score < 2 {
-			http.Redirect(w, r, "/register?error=Mot+de+passe+trop+faible", http.StatusSeeOther)
-			return
-		}
+		// if strength.Score < 2 {
+		// 	http.Redirect(w, r, "/register?error=Mot+de+passe+trop+faible", http.StatusSeeOther)
+		// 	return
+		// }
 
 		if pseudo == "" || email == "" || password == "" {
 			http.Redirect(w, r, "/register?error=Tous+les+champs+sont+requis", http.StatusSeeOther)
@@ -83,7 +80,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		stmt, err := DB.Prepare("INSERT INTO users(pseudo, email, password) VALUES(?, ?, ?)")
+		stmt, err := DB.Prepare("INSERT INTO users(pseudo, email, password) VALUES($1, $2, $3)")
 		if err != nil {
 			log.Println(err)
 			http.Redirect(w, r, "/register?error=Erreur+de+base+de+données", http.StatusSeeOther)
@@ -129,8 +126,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		}
 
 		var pseudo string
-		err := DB.QueryRow("SELECT password, pseudo FROM users WHERE email = ? OR pseudo = ?", identifiant, identifiant).Scan(&hashedPassword, &pseudo)
-
+	err := DB.QueryRow("SELECT password, pseudo FROM users WHERE email = $1 OR pseudo = $2", identifiant, identifiant).Scan(&hashedPassword, &pseudo)
 		if err == sql.ErrNoRows {
 			http.Redirect(w, r, "/login?error=Identifiant+ou+mot+de+passe+incorrect", http.StatusSeeOther)
 			return
@@ -342,7 +338,7 @@ func AttenteHandler(w http.ResponseWriter, r *http.Request) {
 
 	if status == "playing" {
 		var gameType string
-		DB.QueryRow("SELECT jeu FROM room WHERE id = ?", roomID).Scan(&gameType)
+		DB.QueryRow("SELECT jeu FROM room WHERE id = $1", roomID).Scan(&gameType)
 		if gameType == "PetitBac" {
 			http.Redirect(w, r, "/petit-bac/game", http.StatusSeeOther)
 		} else {

@@ -5,13 +5,13 @@ import (
 	"math/rand"
 	"time"
 
-	_ "github.com/glebarez/go-sqlite"
+	_ "github.com/lib/pq"
 )
 
 func CreateTableRoom(DB *sql.DB) (sql.Result, error) {
 
 	query := `CREATE TABLE IF NOT EXISTS room (
-		id INTEGER PRIMARY KEY,
+		id SERIAL PRIMARY KEY,
 		nom TEXT UNIQUE NOT NULL,
 		jeu TEXT NOT NULL,
 		creator_id INTEGER,
@@ -47,13 +47,13 @@ func GenerateRoomCode() string {
 }
 
 func IsRoomCodeUnique(db *sql.DB, code string) bool {
-	var exists int
-	query := "SELECT EXISTS(SELECT 1 FROM room WHERE nom = ?)"
+	var exists bool
+	query := "SELECT EXISTS(SELECT 1 FROM room WHERE nom = $1)"
 	err := db.QueryRow(query, code).Scan(&exists)
 	if err != nil {
 		return false
 	}
-	return exists == 0
+	return !exists
 }
 
 func GetUniqueRoomCode(db *sql.DB) string {
@@ -66,14 +66,14 @@ func GetUniqueRoomCode(db *sql.DB) string {
 }
 
 func CreateRoom(db *sql.DB, name string, game string, creatorID int) error {
-	query := "INSERT INTO room (nom, jeu, creator_id, status) VALUES (?, ?, ?, 'waiting')"
+	query := "INSERT INTO room (nom, jeu, creator_id, status) VALUES ($1, $2, $3, 'waiting')"
 	_, err := db.Exec(query, name, game, creatorID)
 	return err
 }
 
 func GetRoomID(db *sql.DB, name string) (int, error) {
 	var id int
-	query := "SELECT id FROM room WHERE nom = ?"
+	query := "SELECT id FROM room WHERE nom = $1"
 	err := db.QueryRow(query, name).Scan(&id)
 	return id, err
 }
@@ -81,7 +81,7 @@ func GetRoomID(db *sql.DB, name string) (int, error) {
 func GetRoomDetails(db *sql.DB, roomID int) (string, string, int, string, error) {
 	var name, game, status string
 	var creatorID int
-	query := "SELECT nom, jeu, creator_id, status FROM room WHERE id = ?"
+	query := "SELECT nom, jeu, creator_id, status FROM room WHERE id = $1"
 	err := db.QueryRow(query, roomID).Scan(&name, &game, &creatorID, &status)
 	return name, game, creatorID, status, err
 }
@@ -91,8 +91,8 @@ func GetRoomUsers(db *sql.DB, roomID int) ([]string, error) {
 		SELECT u.pseudo 
 		FROM users u 
 		JOIN roomusers ru ON u.id = ru.user_id 
-		WHERE ru.room_id = ?
-		ORDER BY ru.rowid ASC
+		WHERE ru.room_id = $1
+		ORDER BY ru.ctid ASC
 	`
 	rows, err := db.Query(query, roomID)
 	if err != nil {
@@ -112,13 +112,13 @@ func GetRoomUsers(db *sql.DB, roomID int) ([]string, error) {
 }
 
 func UpdateRoomStatus(db *sql.DB, roomID int, status string) error {
-	query := "UPDATE room SET status = ? WHERE id = ?"
+	query := "UPDATE room SET status = $1 WHERE id = $2"
 	_, err := db.Exec(query, status, roomID)
 	return err
 }
 
 func AddUserToRoom(db *sql.DB, roomID int, userID int) error {
-	query := "INSERT INTO roomusers (room_id, user_id) VALUES (?, ?)"
+	query := "INSERT INTO roomusers (room_id, user_id) VALUES ($1, $2)"
 	_, err := db.Exec(query, roomID, userID)
 	return err
 }

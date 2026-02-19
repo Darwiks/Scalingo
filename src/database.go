@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 
-	_ "github.com/glebarez/go-sqlite"
+	_ "github.com/lib/pq"
 )
 
 
@@ -13,10 +13,25 @@ func InitDatabase() error {
         return nil
     }
 
-	// Connection a  la base
-	db, err := sql.Open("sqlite", "groupietracker.db")
+	// Charger la configuration
+	config, err := LoadConfig()
+	if err != nil {
+		fmt.Println("Erreur de configuration:", err)
+		return err
+	}
+
+	// Connection à la base PostgreSQL
+	db, err := sql.Open("postgres", config.DatabaseURL)
 	if err != nil {
 		fmt.Println(err)
+		return err
+	}
+
+	// Vérifier la connexion
+	err = db.Ping()
+	if err != nil {
+		fmt.Println("Impossible de se connecter à la base de données:", err)
+		db.Close()
 		return err
 	}
 	_, err = CreateTableUsers(db)

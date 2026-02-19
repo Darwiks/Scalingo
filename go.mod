@@ -7,6 +7,7 @@ toolchain go1.24.11
 require (
 	github.com/glebarez/go-sqlite v1.22.0
 	github.com/gorilla/websocket v1.5.3
+	github.com/lib/pq v1.11.2
 	github.com/nbutton23/zxcvbn-go v0.0.0-20210217022336-fa2cb2858354
 	golang.org/x/crypto v0.45.0
 )
