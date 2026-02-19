@@ -16,12 +16,14 @@
     <div id="messages"></div>
 
     <script>
-        const socket = new WebSocket("ws://localhost:8080/ws");
+        const socket = new WebSocket("ws://" + window.location.host + "/ws");
         const statusDiv = document.getElementById("status");
         const messagesDiv = document.getElementById("messages");
         const audioPlayer = document.getElementById("musicPlayer");
         const roundTimerDiv = document.getElementById("roundTimer");
+        const timerDisplay = document.getElementById("timerDisplay");
         let roundInterval;
+        let countdownInterval;
 
         function startRoundTimer() {
             clearInterval(roundInterval);
@@ -33,6 +35,21 @@
                 roundTimerDiv.textContent = timeLeft;
                 if (timeLeft <= 0) {
                     clearInterval(roundInterval);
+                }
+            }, 1000);
+        }
+
+        function startCountdown(seconds) {
+            clearInterval(countdownInterval);
+            timerDisplay.style.display = "block";
+            let timeLeft = seconds;
+            document.getElementById("timeLeft").textContent = timeLeft;
+            
+            countdownInterval = setInterval(() => {
+                timeLeft--;
+                document.getElementById("timeLeft").textContent = timeLeft;
+                if (timeLeft <= 0) {
+                    clearInterval(countdownInterval);
                 }
             }, 1000);
         }
@@ -85,6 +102,10 @@
         document.getElementById("inputGuess").addEventListener("keypress", function(event) {
             if (event.key === "Enter") sendGuess();
         });
+
+        // Afficher le message d'attente au démarrage
+        timerDisplay.style.display = "block";
+        addMessage("SYSTEM", "En attente du démarrage de la partie...");
     </script>
 </body>
 </html>

@@ -2,11 +2,13 @@ package src
 
 import (
 	"database/sql"
+	"fmt"
 	"groupie/games"
 	"html/template"
 	"log"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 func BlindTestHome(w http.ResponseWriter, r *http.Request) {
@@ -114,6 +116,12 @@ func BlindTest(w http.ResponseWriter, r *http.Request) {
 			roomID, err := GetRoomID(DB, roomCode)
 			if err == nil {
 				UpdateRoomStatus(DB, roomID, "playing")
+				
+				// Notifier tous les joueurs via WebSocket pour les rediriger vers le jeu
+				if hub != nil {
+					msg := fmt.Sprintf(`{"type":"redirect","room":"%s","url":"/blindgame"}`, roomCode)
+					hub.Broadcast <- []byte(msg)
+				}
 			} else {
 				log.Println("Error getting room ID:", err)
 			}
@@ -141,6 +149,26 @@ func BlindTest(w http.ResponseWriter, r *http.Request) {
 		}
 
 		log.Printf("Nouvelle partie configurée : Playlist=%s, Tours=%d, Timer=%ds", playlistID, maxRounds, timeLimit)
+
+		// Déclencher la première musique automatiquement après une courte pause
+		go func() {
+			time.Sleep(2 * time.Second)
+			if CurrentGame != nil && len(CurrentGame.Playlist) > 0 {
+				firstSong := CurrentGame.GetCurrentSong()
+				if firstSong != nil && hub != nil {
+					msg := fmt.Sprintf(`{"type": "audio", "url": "%s", "msg": "La partie commence ! Trouvez le titre et l'artiste !"}`, firstSong.File)
+					hub.Broadcast <- []byte(msg)
+					
+					// Démarrer le timer pour cette chanson
+					CurrentGame.StartRoundTimer(func() {
+						timeoutMsg := fmt.Sprintf(`{"type": "msg", "text": "Temps écoulé ! La réponse était : %s - %s. Prochaine dans 5s..."}`,
+							firstSong.Artist, firstSong.Title)
+						hub.Broadcast <- []byte(timeoutMsg)
+						StartNewRound()
+					})
+				}
+			}
+		}()
 
 		http.Redirect(w, r, "/blindgame", http.StatusSeeOther)
 		return

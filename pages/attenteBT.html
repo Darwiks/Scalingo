@@ -49,10 +49,35 @@
         }
     </style>
     <script>
-        // Refresh page every 3 seconds to update user list and check game status
-        setTimeout(function() {
-            window.location.reload();
-        }, 3000);
+        // WebSocket pour rediriger automatiquement quand la partie démarre
+        const socket = new WebSocket("ws://" + window.location.host + "/ws");
+        let reloading = false;
+        socket.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                if (data.type === "redirect") {
+                    if (!data.room || data.room === "{{.RoomCode}}") {
+                        window.location.href = data.url;
+                    }
+                }
+                if (data.type === "room_update") {
+                    if (!reloading && (!data.room || data.room === "{{.RoomCode}}")) {
+                        reloading = true;
+                        window.location.reload();
+                    }
+                }
+            } catch (e) {
+                console.error("WebSocket error", e);
+            }
+        };
+
+        // Refresh page every 5 seconds to update user list
+        setInterval(function() {
+            if (!reloading) {
+                reloading = true;
+                window.location.reload();
+            }
+        }, 5000);
     </script>
 </head>
 <body>
