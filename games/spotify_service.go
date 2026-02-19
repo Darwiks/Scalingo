@@ -11,11 +11,16 @@ import (
 )
 
 // Spotify Credentials (should be environment variables in production)
-// Using placeholders as requested
+// Using placeholders - will fallback to Deezer if not configured
 var (
 	SpotifyClientID     = "YOUR_SPOTIFY_CLIENT_ID"
 	SpotifyClientSecret = "YOUR_SPOTIFY_CLIENT_SECRET"
 )
+
+// Vérifie si Spotify est configuré
+func IsSpotifyConfigured() bool {
+	return SpotifyClientID != "YOUR_SPOTIFY_CLIENT_ID" && SpotifyClientSecret != "YOUR_SPOTIFY_CLIENT_SECRET"
+}
 
 type SpotifyTokenResponse struct {
 	AccessToken string `json:"access_token"`
@@ -45,6 +50,10 @@ var spotifyToken string
 var tokenExpiry time.Time
 
 func GetSpotifyToken() (string, error) {
+	if !IsSpotifyConfigured() {
+		return "", fmt.Errorf("spotify credentials not configured")
+	}
+	
 	if spotifyToken != "" && time.Now().Before(tokenExpiry) {
 		return spotifyToken, nil
 	}

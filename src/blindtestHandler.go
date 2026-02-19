@@ -137,10 +137,16 @@ func BlindTest(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
+		// Essayer Spotify d'abord, puis fallback sur Deezer
 		songs, err := games.LoadSongsFromSpotify(playlistID)
 		if err != nil {
-			log.Println("Erreur Spotify :", err)
-			songs = []games.Song{}
+			log.Println("Spotify non disponible, utilisation de Deezer :", err)
+			songs, err = games.LoadSongsFromDeezer(playlistID)
+			if err != nil {
+				log.Println("Erreur Deezer :", err)
+				http.Error(w, "Impossible de charger les musiques", http.StatusInternalServerError)
+				return
+			}
 		}
 
 		games.ShufflePlaylist(songs)

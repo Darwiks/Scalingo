@@ -106,10 +106,8 @@ func PetitBacLaunchHandler(w http.ResponseWriter, r *http.Request) {
 		hub.Broadcast <- []byte(msg)
 	}
 
-	// Redirect creator back to waiting room where auto-refresh will redirect to game
+	// Redirect creator to the game
 	http.Redirect(w, r, "/petit-bac/game?room="+roomCode, http.StatusSeeOther)
-
-	http.Redirect(w, r, "/attente?room="+roomCode, http.StatusSeeOther)
 }
 
 func PetitBacHome(w http.ResponseWriter, r *http.Request) {
