@@ -5,10 +5,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/static/petitbac.css">
     <title>Configuration - BlindTest</title>
+    <script>
+        // WebSocket pour mettre à jour la liste des joueurs
+        const socket = new WebSocket("ws://" + window.location.host + "/ws");
+        socket.onmessage = (event) => {
+             // Si on reçoit un message de type "redirect" ou autre, on pourrait réagir
+             // Pour l'instant, on se contente de recharger la page si nécessaire
+             // Mais pour ne pas perdre le formulaire, on va éviter le reload auto
+             // Idéalement, on mettrait à jour la liste via JS
+        };
+    </script>
 </head>
 <body>
     <div class="container">
         <h1>Configuration du BlindTest</h1>
+        
+        <div class="players-list" style="margin-bottom: 20px; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 5px;">
+            <h3>Joueurs dans le salon :</h3>
+            <ul>
+                {{range .Users}}
+                <li>{{.}}</li>
+                {{end}}
+            </ul>
+        </div>
         
         <form action="/blindgame" method="POST" class="config-form">
             <input type="hidden" name="room_code" value="{{.RoomCode}}">

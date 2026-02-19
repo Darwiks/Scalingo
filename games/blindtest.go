@@ -27,10 +27,10 @@ type PlaylistInfo struct {
 }
 
 var AvailablePlaylists = []PlaylistInfo{
-	{ID: "3155776842", Name: "Les plus grands tubes"},
-	{ID: "3272614282", Name: "Rap FR"},
-	{ID: "1275756721", Name: "Techno"},
-	{ID: "1306931615", Name: "Rock"},
+	{ID: "37i9dQZF1DXcBWIGoYBM5M", Name: "Top Hits (Spotify)"},
+	{ID: "37i9dQZF1DX0XUsuxWHRQd", Name: "Rap (Spotify)"},
+	{ID: "37i9dQZF1DX4o1oenSJRJd", Name: "Années 2000 (Spotify)"},
+	{ID: "37i9dQZF1DWXRqgorJj26U", Name: "Rock (Spotify)"},
 }
 
 func ShufflePlaylist(songs []Song) {

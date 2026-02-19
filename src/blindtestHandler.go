@@ -26,9 +26,19 @@ func BlindTestHome(w http.ResponseWriter, r *http.Request) {
 
 func BlindTestConfig(w http.ResponseWriter, r *http.Request) {
 	roomCode := r.URL.Query().Get("room")
+	
+	var users []string
+	if roomCode != "" {
+		roomID, err := GetRoomID(DB, roomCode)
+		if err == nil {
+			users, _ = GetRoomUsers(DB, roomID)
+		}
+	}
+
 	data := map[string]interface{}{
 		"RoomCode":  roomCode,
 		"Playlists": games.AvailablePlaylists,
+		"Users":     users,
 	}
 	tpl, err := template.ParseFiles("pages/blindtest_config.html")
 	if err != nil {
@@ -127,9 +137,9 @@ func BlindTest(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		songs, err := games.LoadSongsFromDeezer(playlistID)
+		songs, err := games.LoadSongsFromSpotify(playlistID)
 		if err != nil {
-			log.Println("Erreur Deezer :", err)
+			log.Println("Erreur Spotify :", err)
 			songs = []games.Song{}
 		}
 
