@@ -32,7 +32,6 @@ var AvailablePlaylists = []PlaylistInfo{
 	{ID: "1275756721", Name: "Techno"},
 	{ID: "1306931615", Name: "Rock"},
 }
-}
 
 func ShufflePlaylist(songs []Song) {
 	rand.Seed(time.Now().UnixNano())
