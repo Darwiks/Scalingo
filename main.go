@@ -5,7 +5,7 @@ import (
 )
 
 func main() {
-	src.InitDatabase()
+	// src.InitDatabase()
 
 	// Initialisation du jeu vide au départ
 	src.CurrentGame = nil

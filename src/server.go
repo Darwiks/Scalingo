@@ -6,7 +6,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
-
+	"os"
 	"groupie/games"
 
 	_ "github.com/glebarez/go-sqlite"
@@ -517,7 +517,9 @@ func Server() {
 	http.Handle("/script/", http.StripPrefix("/script/", scriptFs))
 
 	log.Println("Serveur démarré sur http://localhost:8080")
-	if err := http.ListenAndServe(":8080", nil); err != nil {
+	ip := ":"
+	port := os.Getenv("PORT")
+	if err := http.ListenAndServe(ip+port, nil); err != nil {
 		log.Fatal("Erreur serveur:", err)
 	}
 }
