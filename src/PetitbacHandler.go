@@ -97,13 +97,17 @@ func PetitBacLaunchHandler(w http.ResponseWriter, r *http.Request) {
 
 	currentGame.DrawLetter()
 
-	// Update room status to playing
+	// Update room status to playing AVANT d'envoyer le message WebSocket
 	UpdateRoomStatus(DB, roomID, "playing")
 
 	// Notifier les clients en salle d'attente via websocket
 	if hub != nil {
 		msg := fmt.Sprintf(`{"type":"redirect","room":"%s","url":"/petit-bac/game"}`, roomCode)
+		log.Printf("Envoi du message WebSocket pour lancer le jeu dans la room %s pour %d clients connectés", roomCode, len(hub.Clients))
 		hub.Broadcast <- []byte(msg)
+		log.Printf("Message WebSocket envoyé avec succès")
+	} else {
+		log.Println("ATTENTION: Le hub WebSocket n'est pas initialisé!")
 	}
 
 	// Redirect creator to the game

@@ -56,8 +56,10 @@
         socket.onmessage = (event) => {
             try {
                 const data = JSON.parse(event.data);
+                console.log("Message WebSocket reçu:", data);
                 if (data.type === "redirect") {
                     if (!data.room || data.room === "{{.RoomCode}}") {
+                        console.log("Redirection vers:", data.url);
                         window.location.href = data.url;
                     }
                 }
@@ -71,6 +73,26 @@
                 console.error("WebSocket error", e);
             }
         };
+
+        socket.onopen = () => {
+            console.log("WebSocket connecté pour la room {{.RoomCode}}");
+        };
+
+        socket.onerror = (error) => {
+            console.error("Erreur WebSocket:", error);
+        };
+
+        // Vérification périodique du statut de la room (fallback si WebSocket ne fonctionne pas)
+        setInterval(() => {
+            fetch(window.location.href)
+                .then(response => {
+                    // Si on est redirigé, suivre la redirection
+                    if (response.redirected) {
+                        window.location.href = response.url;
+                    }
+                })
+                .catch(err => console.log("Erreur lors de la vérification du statut:", err));
+        }, 2000); // Vérifier toutes les 2 secondes
     </script>
 </head>
 <body>

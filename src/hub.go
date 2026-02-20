@@ -25,16 +25,25 @@ func (h *Hub) Run() {
 		select {
 		case client := <-h.Register:
 			h.Clients[client] = true
-			fmt.Println(client.Name + "connecté")
+			fmt.Println(client.Name + " connecté au WebSocket")
 		case client := <-h.Unregister:
 			if _, ok := h.Clients[client]; ok {
 				delete(h.Clients, client)
 				close(client.Send)
-				fmt.Println(client.Name + "déconnecté")
+				fmt.Println(client.Name + " déconnecté du WebSocket")
 			}
 		case message := <-h.Broadcast:
+			fmt.Printf("Broadcasting message to %d clients: %s\n", len(h.Clients), string(message))
 			for client := range h.Clients {
-				client.Send <- message
+				select {
+				case client.Send <- message:
+					// Message envoyé avec succès
+				default:
+					// Le canal est plein, fermer la connexion
+					fmt.Printf("Client %s a un canal Send plein, déconnexion\n", client.Name)
+					close(client.Send)
+					delete(h.Clients, client)
+				}
 			}
 		}
 	}

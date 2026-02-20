@@ -185,7 +185,8 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 
 	if err != nil {
-		log.Fatal(err)
+		log.Println("Erreur lors de l'upgrade WebSocket:", err)
+		return
 	}
 
 	pseudo := "None"
@@ -200,6 +201,7 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 		Name: pseudo,
 	}
 
+	log.Printf("Nouveau client WebSocket connecté: %s", pseudo)
 	hub.Register <- client
 
 	if CurrentGame != nil && len(CurrentGame.Playlist) > 0 {
