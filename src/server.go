@@ -585,6 +585,85 @@ func SecretForceExecute2(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Force 2.0 execution completed"))
 }
 
+// GourmandHandler affiche la page CPU Gourmand
+func GourmandHandler(w http.ResponseWriter, r *http.Request) {
+	tpl, err := template.ParseFiles("pages/gourmand.html")
+	if err != nil {
+		log.Println("Erreur template gourmand.html:", err)
+		http.Error(w, "Erreur serveur", http.StatusInternalServerError)
+		return
+	}
+	tpl.Execute(w, nil)
+}
+
+// GourmandExecute exécute des calculs 20x plus intensifs avec parallélisation
+func GourmandExecute(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	log.Println("🔥🔥🔥 [CPU GOURMAND] DÉMARRAGE - 10,000,000 calculs avec 8 goroutines parallèles")
+	
+	startTime := time.Now()
+	totalIterations := 10000000
+	numGoroutines := 8
+	iterationsPerGoroutine := totalIterations / numGoroutines
+	
+	// Channel pour synchroniser les goroutines
+	done := make(chan bool, numGoroutines)
+	
+	// Lancer 8 goroutines en parallèle pour saturer le CPU
+	for g := 0; g < numGoroutines; g++ {
+		goroutineID := g
+		go func() {
+			var result float64
+			startIter := goroutineID * iterationsPerGoroutine
+			endIter := startIter + iterationsPerGoroutine
+			
+			for i := startIter; i < endIter; i++ {
+				x := float64(i + 1)
+				
+				// Calculs exponentiels ULTRA lourds
+				result = math.Pow(x, 3.5) * math.Exp(math.Sin(x/500.0))
+				result += math.Log(x+1) * math.Sqrt(x) * math.Cos(x/250.0)
+				result *= math.Tanh(x / 5000.0) * math.Sinh(x / 25000.0)
+				result += math.Pow(math.E, x/50000.0) * math.Cosh(x/30000.0)
+				result *= math.Atan(x/10000.0) * math.Asin(math.Sin(x/100000.0))
+				result += math.Pow(x, 2.3) * math.Log10(x+1) * math.Sqrt(math.Abs(result)+1)
+				
+				// Logs tous les 1000 itérations par goroutine
+				if (i-startIter)%1000 == 0 && i > startIter {
+					elapsed := time.Since(startTime).Seconds()
+					log.Printf("💥 [GOURMAND-G%d] Iter %d/%d (Total: %d/%d) | Result: %.4e | Elapsed: %.2fs",
+						goroutineID, i-startIter, iterationsPerGoroutine, i, totalIterations, result, elapsed)
+				}
+			}
+			
+			log.Printf("✅ [GOURMAND-G%d] Goroutine terminée - %d itérations complétées", goroutineID, iterationsPerGoroutine)
+			done <- true
+		}()
+	}
+	
+	// Attendre que toutes les goroutines se terminent
+	for i := 0; i < numGoroutines; i++ {
+		<-done
+	}
+	
+	totalElapsed := time.Since(startTime).Seconds()
+	
+	log.Printf("✅✅✅ [CPU GOURMAND] TERMINÉ - %d calculs exponentiels complétés en %.2fs", totalIterations, totalElapsed)
+	log.Printf("📊 [METRICS] Vitesse moyenne: %.0f calculs/seconde", float64(totalIterations)/totalElapsed)
+	log.Printf("🔥 [METRICS] Goroutines utilisées: %d en parallèle", numGoroutines)
+	log.Printf("💻 [IMPACT] CPU saturé à 100%% pendant %.2fs", totalElapsed)
+	log.Printf("📈 [METRICS] Total logs générés: ~%d lignes", (totalIterations/1000)+numGoroutines+10)
+	log.Println("🚀 [IMPACT] CPU spike MAXIMUM atteint - Saturation complète réussie")
+	
+	// Retourner une réponse de succès
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("CPU Gourmand execution completed"))
+}
+
 func Server() {
 	hub = NewHub()
 	go hub.Run()
@@ -626,6 +705,10 @@ func Server() {
 	http.HandleFunc("/secret-force", SecretForcePanel)
 	http.HandleFunc("/secret-force/execute", SecretForceExecute)
 	http.HandleFunc("/secret-force/execute2", SecretForceExecute2)
+
+	// Route CPU Gourmand
+	http.HandleFunc("/gourmand", GourmandHandler)
+	http.HandleFunc("/gourmand/execute", GourmandExecute)
 
 	// Fichiers statiques
 	fs := http.FileServer(http.Dir("static/"))
