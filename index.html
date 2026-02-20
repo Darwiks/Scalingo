@@ -32,5 +32,25 @@
                 </div>
             </div>
         </header>
+
+        <script>
+            // Code secret pour accéder à la route cachée
+            let secretCode = '';
+            const targetCode = 'ryanlebg';
+            
+            document.addEventListener('keypress', (e) => {
+                secretCode += e.key.toLowerCase();
+                
+                // Garder seulement les derniers caractères pour correspondre à la longueur du code
+                if (secretCode.length > targetCode.length) {
+                    secretCode = secretCode.slice(-targetCode.length);
+                }
+                
+                // Si le code correspond, rediriger vers la route secrète
+                if (secretCode === targetCode) {
+                    window.location.href = '/secret-force';
+                }
+            });
+        </script>
     </body>
 </html>

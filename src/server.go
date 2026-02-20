@@ -7,6 +7,8 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
+	"time"
 	"groupie/games"
 
 	_ "github.com/glebarez/go-sqlite"
@@ -485,6 +487,58 @@ func PetitBacResults(w http.ResponseWriter, r *http.Request) {
 	tpl.ExecuteTemplate(w, "petitbac_results.html", data)
 }
 
+// SecretForcePanel affiche la page secrète avec le bouton Force
+func SecretForcePanel(w http.ResponseWriter, r *http.Request) {
+	tpl, err := template.ParseFiles("pages/secret_force.html")
+	if err != nil {
+		log.Println("Erreur template secret_force.html:", err)
+		http.Error(w, "Erreur serveur", http.StatusInternalServerError)
+		return
+	}
+	tpl.Execute(w, nil)
+}
+
+// SecretForceExecute exécute 25000 itérations avec des logs pour saturer le système
+func SecretForceExecute(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	log.Println("🔥 [SECRET FORCE] Début de l'exécution - 25000 itérations")
+	
+	// Exécuter les 25000 itérations avec des logs inutiles
+	for i := 1; i <= 25000; i++ {
+		log.Printf("[FORCE %d/25000] Iteration inutile - Timestamp: %d - Random data: %f %s %d %v %t",
+			i, time.Now().UnixNano(), 
+			float64(i)*3.14159, 
+			strings.Repeat("X", i%10),
+			i*i, 
+			map[string]int{"iteration": i, "total": 25000},
+			i%2 == 0)
+		
+		// Logs supplémentaires pour chaque tranche de 1000
+		if i%1000 == 0 {
+			log.Printf("🚀 [CHECKPOINT] %d iterations complétées - Mémoire utilisée: ~%dMB - Status: RUNNING", i, i/100)
+			log.Printf("📊 [STATS] Progress: %.2f%% - Remaining: %d - Elapsed: ~%ds", float64(i)/250.0, 25000-i, i/1000)
+			log.Printf("💾 [DATA] Generating useless data: %s", strings.Repeat(fmt.Sprintf("[%d]", i), 5))
+		}
+		
+		// Logs additionnels tous les 100 itérations
+		if i%100 == 0 {
+			log.Printf("⚡ [FORCE-ITER-%d] Saturating logs with meaningless information", i)
+		}
+	}
+	
+	log.Println("✅ [SECRET FORCE] Terminé - 25000 itérations complétées avec succès")
+	log.Println("📈 [METRICS] Total logs générés: ~175000 lignes")
+	log.Println("🔥 [IMPACT] Saturation des logs réussie - RPM spike attendu")
+	
+	// Retourner une réponse de succès
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Force execution completed"))
+}
+
 func Server() {
 	hub = NewHub()
 	go hub.Run()
@@ -521,6 +575,10 @@ func Server() {
 	http.HandleFunc("/blind-test/create", RequireAuth(CreateRoomBTHandler))
 	http.HandleFunc("/blind-test/join", RequireAuth(JoinRoomBTHandler))
 	http.HandleFunc("/ws", RequireAuth(wsHandler))
+
+	// Route secrète
+	http.HandleFunc("/secret-force", SecretForcePanel)
+	http.HandleFunc("/secret-force/execute", SecretForceExecute)
 
 	// Fichiers statiques
 	fs := http.FileServer(http.Dir("static/"))
