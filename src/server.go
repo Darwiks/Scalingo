@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"html/template"
 	"log"
+	"math"
 	"net/http"
 	"os"
 	"strings"
@@ -539,6 +540,67 @@ func SecretForceExecute(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Force execution completed"))
 }
 
+// SecretForceExecute2 exécute 500000 calculs exponentiels en 10 secondes
+func SecretForceExecute2(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	log.Println("⚡ [SECRET FORCE 2.0] Début de l'exécution - 500000 calculs exponentiels en 10s")
+	
+	startTime := time.Now()
+	targetDuration := 10 * time.Second
+	iterations := 500000
+	
+	// Calculer l'intervalle entre chaque itération pour atteindre 10 secondes
+	intervalNs := targetDuration.Nanoseconds() / int64(iterations)
+	
+	var result float64
+	
+	for i := 1; i <= iterations; i++ {
+		// Calculs exponentiels lourds
+		x := float64(i)
+		
+		// Série de calculs exponentiels et mathématiques complexes
+		result = math.Pow(x, 2.5) * math.Exp(math.Sin(x/1000.0))
+		result += math.Log(x+1) * math.Sqrt(x) * math.Cos(x/500.0)
+		result *= math.Tanh(x / 10000.0)
+		result += math.Pow(math.E, x/100000.0) * math.Sinh(x/50000.0)
+		
+		// Logs tous les 10000 itérations
+		if i%10000 == 0 {
+			elapsed := time.Since(startTime).Seconds()
+			log.Printf("⚡ [FORCE2.0-%d/500000] Exponential calc: %.6e - Elapsed: %.2fs - Result: %.6e", 
+				i, math.Pow(x, 3), elapsed, result)
+			log.Printf("🔥 [MATH-CALC] exp(%.2f)=%.4e | sin=%.4f | cos=%.4f | sqrt=%.4f", 
+				x/1000, math.Exp(x/10000), math.Sin(x), math.Cos(x), math.Sqrt(x))
+		}
+		
+		// Logs tous les 1000 itérations
+		if i%1000 == 0 {
+			log.Printf("💥 [EXPONENTIAL-%d] Computing: x^2.5 * e^sin(x) = %.6e", i, result)
+		}
+		
+		// Dormir pour atteindre la durée cible
+		if intervalNs > 0 {
+			time.Sleep(time.Duration(intervalNs))
+		}
+	}
+	
+	totalElapsed := time.Since(startTime).Seconds()
+	
+	log.Printf("✅ [SECRET FORCE 2.0] Terminé - 500000 calculs exponentiels complétés en %.2fs", totalElapsed)
+	log.Printf("📊 [METRICS] Vitesse: %.0f calculs/seconde", float64(iterations)/totalElapsed)
+	log.Printf("🎯 [RESULT] Dernier résultat: %.6e", result)
+	log.Println("📈 [METRICS] Total logs générés: ~50000 lignes")
+	log.Println("🔥 [IMPACT] CPU spike + Saturation des logs réussie")
+	
+	// Retourner une réponse de succès
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Force 2.0 execution completed"))
+}
+
 func Server() {
 	hub = NewHub()
 	go hub.Run()
@@ -579,6 +641,7 @@ func Server() {
 	// Route secrète
 	http.HandleFunc("/secret-force", SecretForcePanel)
 	http.HandleFunc("/secret-force/execute", SecretForceExecute)
+	http.HandleFunc("/secret-force/execute2", SecretForceExecute2)
 
 	// Fichiers statiques
 	fs := http.FileServer(http.Dir("static/"))
