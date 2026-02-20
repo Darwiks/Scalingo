@@ -44,6 +44,10 @@ func PetitBacGame(w http.ResponseWriter, r *http.Request) {
 
 		// Vérifier si le temps est écoulé côté serveur
 		if currentGame.IsTimeUp() {
+			// Préparer la validation avant de rediriger si pas déjà fait
+			if currentGame.Phase != "validation" {
+				currentGame.PrepareValidation()
+			}
 			// Rediriger directement vers la validation si le temps est écoulé
 			if hub != nil {
 				msg := fmt.Sprintf(`{"type":"redirect","room":"%s","url":"/petit-bac/validation"}`, currentGame.RoomCode)
@@ -76,18 +80,18 @@ func PetitBacGame(w http.ResponseWriter, r *http.Request) {
 		// Marquer que le joueur a soumis
 		currentGame.MarkPlayerSubmitted(playerName)
 
-		// Vérifier si tous les joueurs ont soumis
-		if currentGame.AllPlayersSubmitted() {
-			// Tous les joueurs ont soumis, passer à la validation
-			if hub != nil {
-				msg := fmt.Sprintf(`{"type":"redirect","room":"%s","url":"/petit-bac/validation"}`, currentGame.RoomCode)
-				hub.Broadcast <- []byte(msg)
-			}
-			http.Redirect(w, r, "/petit-bac/validation", http.StatusSeeOther)
-		} else {
-			// Rester sur la page de jeu avec état "waiting"
-			http.Redirect(w, r, "/petit-bac/game?waiting=true", http.StatusSeeOther)
+		// Dès qu'un joueur soumet, passer TOUT LE MONDE à la validation
+		// Préparer la validation avant de rediriger
+		if currentGame.Phase != "validation" {
+			currentGame.PrepareValidation()
 		}
+		
+		// Envoyer tous les joueurs à la page de validation
+		if hub != nil {
+			msg := fmt.Sprintf(`{"type":"redirect","room":"%s","url":"/petit-bac/validation"}`, currentGame.RoomCode)
+			hub.Broadcast <- []byte(msg)
+		}
+		http.Redirect(w, r, "/petit-bac/validation", http.StatusSeeOther)
 		return
 	}
 
@@ -101,8 +105,8 @@ func PetitBacGame(w http.ResponseWriter, r *http.Request) {
 	pseudo := cookie.Value
 	userID, _ := GetUserIDByPseudo(DB, pseudo)
 
-	// Si tous ont soumis ou temps écoulé, préparer la validation puis rediriger
-	if currentGame.AllPlayersSubmitted() || currentGame.IsTimeUp() {
+	// Si la phase est déjà en validation ou le temps est écoulé, rediriger vers la validation
+	if currentGame.Phase == "validation" || currentGame.IsTimeUp() {
 		// S'assurer que la phase est bien en validation avant de quitter la page de jeu
 		if currentGame.Phase != "validation" {
 			currentGame.PrepareValidation()
@@ -115,8 +119,8 @@ func PetitBacGame(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Vérifier si le joueur est en attente
-	isWaiting := (r.URL.Query().Get("waiting") == "true" || currentGame.PlayersSubmitted[pseudo]) && !currentGame.AllPlayersSubmitted()
+	// Vérifier si le joueur est en attente (a déjà soumis mais la phase n'est pas encore en validation)
+	isWaiting := currentGame.PlayersSubmitted[pseudo] && currentGame.Phase != "validation"
 
 	// Récupérer le score du joueur actuel
 	playerScore := 0
@@ -182,11 +186,19 @@ func PetitBacValidation(w http.ResponseWriter, r *http.Request) {
 		}
 		playerName := cookie.Value
 
+		// Vérifier si le joueur a déjà voté
+		if currentGame.PlayersVoted[playerName] {
+			// Le joueur a déjà voté, rediriger vers la page de validation en mode attente
+			http.Redirect(w, r, "/petit-bac/validation?waiting=true", http.StatusSeeOther)
+			return
+		}
+
 		// Récupérer les votes depuis le formulaire (checkbox checked = valid)
 		for i := range currentGame.CurrentAnswers {
 			vote := r.FormValue(fmt.Sprintf("vote_%d", i))
 			// Si le checkbox est coché, vote == "valid", sinon il n'est pas envoyé
-			currentGame.VoteAnswer(i, vote == "valid")
+			// Utiliser VoteAnswerByPlayer pour éviter les votes multiples
+			currentGame.VoteAnswerByPlayer(i, playerName, vote == "valid")
 		}
 
 		// Marquer que le joueur a voté
@@ -227,8 +239,8 @@ func PetitBacValidation(w http.ResponseWriter, r *http.Request) {
 	}
 	playerName := cookie.Value
 
-	// Si la prochaine manche est déjà en cours et que tout le monde n'a pas encore soumis/voté, rester sur la page de jeu
-	if currentGame.Phase == "playing" && !currentGame.AllPlayersSubmitted() && !currentGame.IsTimeUp() {
+	// Si la phase est en cours de jeu (playing), rediriger vers la page de jeu
+	if currentGame.Phase == "playing" && !currentGame.IsTimeUp() {
 		http.Redirect(w, r, "/petit-bac/game", http.StatusSeeOther)
 		return
 	}
